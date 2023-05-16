@@ -19,9 +19,9 @@ if __name__ == '__main__':
     w, b = np.array([3, 8, 21, -5]), np.array([-30])
     y = np.array([0 if row @ w + b > 0 else 1 for row in X])  # 构造线性可分数据集(X,y)
 
-    w, b = perception(X, y.copy(), max_iters=2000)
+    w, b = perception(X, y, max_iters=2000)
     print(w, b)
     print(y)
-    predict = (X @ w + b > 0).astype(int)
+    predict = np.where(X @ w + b > 0, 1, -1)
     print(predict)
     print((y == predict).sum() / 200)
