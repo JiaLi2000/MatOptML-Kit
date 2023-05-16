@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.linalg as sl
-from typing import Callable
 import time
 
 
@@ -71,12 +70,13 @@ def gradient_descent(fun, theta: np.array, lr: float = 1e-3, max_iters: int = 50
     pre_fval = 0
     iter = 0
     while True:
-        cur_fval, grad = fun(**paras)
+        cur_fval, grad = fun(theta=theta, **paras)
         theta -= lr * grad
-        pre_fval = cur_fval
-        iter += 1
+        print(f'iter {iter}, loss {cur_fval}, grad{grad}')
         if iter > max_iters or abs(cur_fval - pre_fval) < eps:
             break
+        pre_fval = cur_fval
+        iter += 1
     return cur_fval, theta
 
 
