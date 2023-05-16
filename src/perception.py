@@ -7,7 +7,7 @@ def perception(X, y, lr=1e-3, max_iters=1000, seed=42):
     w, b = np.random.RandomState(seed).random(p), np.random.RandomState(seed).random(1)
     while iter < max_iters:
         row, iter = np.random.randint(0, n), iter + 1
-        if -y[row] * (w @ X[row, :] + b) > 0:  # SGD
+        if -y[row] * (w @ X[row, :] + b) > 0:  # 若是误分类点,则进行SGD
             w += lr * y[row] * X[row, :]
             b += lr * y[row]
     return w, b
