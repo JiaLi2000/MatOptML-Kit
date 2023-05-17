@@ -1,21 +1,21 @@
 import numpy as np
 
 
-def knn_classificaiton(X, y, query_ids, k):
-    D = np.array([[((x - y) ** 2).sum() ** 0.5 for x in X] for y in X])
+def knn_classificaiton(X, y, query_vectors, k):
     results = []
-    for id in query_ids:
-        knn_labels = y[np.argsort(D[id, :])[:k]]
-        results.append(np.bincount(knn_labels).argmax())
+    for q in query_vectors:
+        dists = np.array([((x - q) ** 2).sum() ** 0.5 for x in X])
+        knn_labels = y[np.argsort(dists)[:k]]
+        results.append(np.bincount(knn_labels).argmax())  # 分类决策规则： 投票
     return results
 
 
-def knn_regression(X, y, query_ids, k):
-    D = np.array([[((x - y) ** 2).sum() ** 0.5 for x in X] for y in X])
+def knn_regression(X, y, query_vectors, k):
     results = []
-    for id in query_ids:
-        knn_labels = y[np.argsort(D[id, :])[:k]]
-        results.append(knn_labels.mean())
+    for q in query_vectors:
+        dists = np.array([((x - q) ** 2).sum() ** 0.5 for x in X])
+        knn_labels = y[np.argsort(dists)[:k]]
+        results.append(knn_labels.mean())  # 回归决策规则： 平均
     return results
 
 
@@ -26,11 +26,11 @@ if __name__ == '__main__':
     w, b = np.array([3, 8, 21, -5]), np.array([-30])
     y = np.array([0 if row @ w + b > 0 else 1 for row in X])
 
-    query_ids = range(200)
-    results = knn_classificaiton(X, y, query_ids, 5)
+    query_vectors = X
+    results = knn_classificaiton(X, y, query_vectors, 5)
     print(y)
     print(results)
-    print((y[query_ids] == results).sum() / len(results))
+    print((y == results).sum() / len(results))
 
     # 回归
     print('--------------')
@@ -39,8 +39,8 @@ if __name__ == '__main__':
     w, b = np.array([3, 8, 21, -5]), np.array([-30])
     y = X @ w + b + np.random.normal(0, 20, 200)
 
-    query_ids = range(200)
-    results = knn_regression(X, y, query_ids, 2)
+    query_vectors = X
+    results = knn_regression(X, y, query_vectors, 2)
     print(list(y))
     print(results)
 
