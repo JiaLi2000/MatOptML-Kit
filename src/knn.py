@@ -19,6 +19,14 @@ def knn_regression(X, y, query_vectors, k):
     return results
 
 
+def knn_anomaly(X, query_vectors, k):
+    results = []
+    for q in query_vectors:
+        dists = np.array([((x - q) ** 2).sum() ** 0.5 for x in X])
+        results.append(np.sort(dists)[k])  # 异常检测决策规则： k-distance作为异常值分数(k-distances的最大值/中位数/平均值)
+    return results
+
+
 if __name__ == '__main__':
     # 分类
     np.random.seed(41)
@@ -45,3 +53,13 @@ if __name__ == '__main__':
     print(results)
 
     print(((np.array(results) - y) ** 2).mean())
+
+    # 异常检测
+    print('--------------')
+    np.random.seed(41)
+    X = np.random.randint(-50, 50, (200, 4))
+    w, b = np.array([3, 8, 21, -5]), np.array([-30])
+
+    query_vectors = X
+    results = knn_anomaly(X, query_vectors, 6)
+    print(results)
