@@ -27,7 +27,7 @@ def LU(A):
     return L, np.triu(A)
 
 
-def PLU(A):
+def PLU(A):  # 画家算法
     n = A.shape[0]
     P = np.eye(n)
     for i in range(n - 1):
@@ -38,11 +38,18 @@ def PLU(A):
         temp = A[maxp, :].copy()
         A[maxp, :] = A[i, :]  # 同时互换了L_i
         A[i, :] = temp
-        A[i + 1:, i] = A[i + 1:, i] / A[i, i]
-        A[i + 1:, i + 1:] -= A[i + 1:, i][:, None] @ A[i, i + 1:][None, :]
+        A[i + 1:, i] = A[i + 1:, i] / A[i, i]  # 计算L的第i列, 即高斯变换L_i非01元素取反
+        A[i + 1:, i + 1:] -= A[i + 1:, i][:, None] @ A[i, i + 1:][None, :]  # 对剩余的子式执行相应的初等行变换
     L = np.tril(A)
     np.fill_diagonal(L, 1)
     return P, L, np.triu(A)
+
+
+def solve(A, b):
+    P, L, U = PLU(A)
+    y = forward_sub(L, P @ b)
+    x = backward_sub(U, y)
+    return x
 
 
 if __name__ == '__main__':
@@ -67,8 +74,8 @@ if __name__ == '__main__':
     print(LU(A.copy()))
     from scipy.sparse.linalg import splu
 
-    slu = splu(A, diag_pivot_thresh=0)  # 等效于不执行置换的LU分解
-    print(slu.L.toarray(), slu.U.toarray())
+    # slu = splu(A, diag_pivot_thresh=0)  # 等效于不执行置换的LU分解
+    # print(slu.L.toarray(), slu.U.toarray())
     # PLU
     print('PLU')
     import scipy.linalg as sl
@@ -79,3 +86,9 @@ if __name__ == '__main__':
     print('-----')
     p, L, U = sl.lu(A.copy())
     print(p, L, U)
+
+    # linear system
+    A = np.random.random((5, 5)) * 10
+    b = np.array([5.0, 3, 7, 6, 2])
+    print(solve(A.copy(), b))
+    print(np.linalg.solve(A, b))
