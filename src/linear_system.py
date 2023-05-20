@@ -17,6 +17,16 @@ def backward_sub(U, b):
     return b
 
 
+def LU(A):  # A所有顺序主子式非0
+    n = A.shape[0]
+    for i in range(n - 1):
+        A[i + 1:, i] = A[i + 1:, i] / A[i, i]  # 画家算法,计算L的第i列, 即高斯变换L_i非01元素取反
+        A[i + 1:, i + 1:] -= A[i + 1:, i][:, None] @ A[i, i + 1:][None, :]  # 对剩余的子式执行相应的初等行变换
+    L = np.tril(A)  # 用A的空间存储L及U
+    np.fill_diagonal(L, 1)
+    return L, np.triu(A)
+
+
 if __name__ == '__main__':
     np.random.seed(10)
     A = np.random.random((5, 5)) * 10
@@ -34,3 +44,10 @@ if __name__ == '__main__':
     b = np.array([5.0, 3, 7, 6, 5])
     print(backward_sub(U, b.copy()))
     print(np.linalg.solve(U, b.copy()))
+    # LU
+    A = np.array([[1, 4, 7], [2, 5, 8], [3, 6, 10]])
+    print(LU(A.copy()))
+    from scipy.sparse.linalg import splu
+
+    slu = splu(A, diag_pivot_thresh=0)  # 等效于不执行置换的LU分解
+    print(slu.L.toarray(), slu.U.toarray())
