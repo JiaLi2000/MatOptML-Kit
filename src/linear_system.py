@@ -29,10 +29,12 @@ def LU(A):
 
 def PLU(A):
     n = A.shape[0]
-    p = np.zeros(n - 1)
+    P = np.eye(n)
     for i in range(n - 1):
         maxp = np.argmax(np.abs(A[i:, i])) + i  # 选择最大元素作为列主元
-        p[i] = maxp
+        temp = P[maxp, :].copy()
+        P[maxp, :] = P[i, :]  # 记录置换矩阵 PA = LU
+        P[i, :] = temp
         temp = A[maxp, :].copy()
         A[maxp, :] = A[i, :]  # 同时互换了L_i
         A[i, :] = temp
@@ -40,8 +42,7 @@ def PLU(A):
         A[i + 1:, i + 1:] -= A[i + 1:, i][:, None] @ A[i, i + 1:][None, :]
     L = np.tril(A)
     np.fill_diagonal(L, 1)
-
-    return p, L, np.triu(A)
+    return P, L, np.triu(A)
 
 
 if __name__ == '__main__':
@@ -65,15 +66,16 @@ if __name__ == '__main__':
     A = np.array([[1, 4, 7], [2, 5, 8], [3, 6, 10]])
     print(LU(A.copy()))
     from scipy.sparse.linalg import splu
+
     slu = splu(A, diag_pivot_thresh=0)  # 等效于不执行置换的LU分解
     print(slu.L.toarray(), slu.U.toarray())
-    PLU
+    # PLU
     print('PLU')
     import scipy.linalg as sl
 
     A = np.array([[1, 2.0, 0], [1, 2, 1], [0, 2, 0]])
-    p, L, U = PLU(A.copy())
-    print(p, '\n', L, '\n\n', U)
+    P, L, U = PLU(A.copy())
+    print(P.T, '\n', L, '\n\n', U)
     print('-----')
-    p,L,U = sl.lu(A.copy())
-    print(p,L,U)
+    p, L, U = sl.lu(A.copy())
+    print(p, L, U)
