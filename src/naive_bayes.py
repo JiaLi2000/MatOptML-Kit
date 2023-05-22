@@ -17,20 +17,20 @@ def naive_bayes(X, y, x):
                  range(s)]  # 平滑的条件概率P(x_j=第l种取值|y=c)
             cond_distri.append(L)
         cond_distris.append(cond_distri)
-    # 预测
-    probs = []
+    # 预测,即计算不同类别对应后验概率的分子,并选择最大者
+    post_probs = []
     for c in range(k):
         prob = prior_distri[c]
         for j in range(p):
             col_uni = np.unique(X[:, j])
             l = np.argwhere(col_uni == x[j])[0][0]  # 不要求特征从0升序
             prob *= cond_distris[c][j][l]
-        probs.append(prob)
-    print(probs)
-    return np.array(prior_distri), cond_distris, np.array(probs).argmax()
+        post_probs.append(prob)
+    print(post_probs)
+    return np.array(prior_distri), cond_distris, np.array(post_probs).argmax()
 
 
-if __name__ == 'main':
+if __name__ == '__main__':
     x1 = np.array([1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3])
     x2 = np.array([1, 2, 2, 1, 1, 1, 2, 2, 3, 3, 3, 2, 2, 3, 3])
     y = np.array([0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0])
