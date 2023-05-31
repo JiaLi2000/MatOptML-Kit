@@ -1,48 +1,44 @@
 import numpy as np
 
 
-def forward_sub(L, b):
+def forward_sub(L, b):  # 前代法：L为n阶可逆下三角阵，O(n^2)
     n = b.shape[0]
-    b[0] = b[0] / L[0, 0]
+    b[0] = b[0] / L[0, 0]  # 首行方程的解，同时用b存储x
     for i in range(1, n):
-        b[i] = (b[i] - L[i, :i] @ b[:i]) / L[i, i]
+        b[i] = (b[i] - L[i, :i] @ b[:i]) / L[i, i]  # 常数项减去左端除以系数
     return b
 
 
-def backward_sub(U, b):
+def backward_sub(U, b):  # 回代法：U为n阶可逆上三角阵，O(n^2)
     n = b.shape[0]
-    b[n - 1] = b[n - 1] / U[n - 1, n - 1]
+    b[n - 1] = b[n - 1] / U[n - 1, n - 1]  # 末行方程的解，同时用b存储x
     for i in range(n - 2, -1, -1):
-        b[i] = (b[i] - U[i, i + 1:] @ b[i + 1:]) / U[i, i]
+        b[i] = (b[i] - U[i, i + 1:] @ b[i + 1:]) / U[i, i]  # 常数项减去右端除以系数
     return b
 
 
-def LU(A):
+def LU(A):  # LU分解：A为n阶方阵且顺序主子式均非0, O(n^3)
     n = A.shape[0]
     for i in range(n - 1):
-        A[i + 1:, i] = A[i + 1:, i] / A[i, i]  # 画家算法,计算L的第i列, 即高斯变换L_i非01元素取反
-        A[i + 1:, i + 1:] -= A[i + 1:, i][:, None] @ A[i, i + 1:][None, :]  # 对剩余的子式执行相应的初等行变换
-    L = np.tril(A)
+        A[i + 1:, i] = A[i + 1:, i] / A[i, i]  # 计算针对各列的高斯变换的高斯向量，并就地存储至A(该列消元后,主元下方均为0)
+        A[i + 1:, i + 1:] -= A[i + 1:, i][:, None] @ A[i, i + 1:][None, :]  # 对剩余的子式同步执行相应的高斯变换
+    L = np.tril(A)  # 由高斯变换的性质3,L由各次消元的高斯向量构成
     np.fill_diagonal(L, 1)
-    return L, np.triu(A)
+    return L, np.triu(A)  # n-1次高斯变换后，A变为上三角U
 
 
-def PLU(A):  # 画家算法
+def PLU(A):  # PA=LU分解：A为n阶可逆方阵, O(n^3)
     n = A.shape[0]
     P = np.eye(n)
     for i in range(n - 1):
-        maxp = np.argmax(np.abs(A[i:, i])) + i  # 选择最大元素作为列主元
-        temp = P[maxp, :].copy()
-        P[maxp, :] = P[i, :]  # 记录置换矩阵 PA = LU
-        P[i, :] = temp
-        temp = A[maxp, :].copy()
-        A[maxp, :] = A[i, :]  # 同时互换了L_i
-        A[i, :] = temp
-        A[i + 1:, i] = A[i + 1:, i] / A[i, i]  # 计算L的第i列, 即高斯变换L_i非01元素取反
-        A[i + 1:, i + 1:] -= A[i + 1:, i][:, None] @ A[i, i + 1:][None, :]  # 对剩余的子式执行相应的初等行变换
-    L = np.tril(A)
+        maxp = np.argmax(np.abs(A[i:, i])) + i  # 选择当前子式(防止已消去元素变回非0)首列中最大元素作为列主元
+        P[[i, maxp], :] = P[[maxp, i], :]  # 记录每次置换的置换矩阵P_i,最终得到P = P_{n-1}...P_1
+        A[[i, maxp], :] = A[[maxp, i], :]  # 执行主元置换，注意这同时对高斯向量l_k执行了后续的置换
+        A[i + 1:, i] = A[i + 1:, i] / A[i, i]  # 计算针对各列的高斯变换的高斯向量，并就地存储至A(该列消元后,主元下方均为0)
+        A[i + 1:, i + 1:] -= A[i + 1:, i][:, None] @ A[i, i + 1:][None, :]  # 对剩余的子式同步执行相应的高斯变换
+    L = np.tril(A)  # 由高斯变换的性质4,L由各次消元的高斯向量做同等后续置换得到
     np.fill_diagonal(L, 1)
-    return P, L, np.triu(A)
+    return P, L, np.triu(A)  # n-1次置换+高斯变换后，A变为上三角U
 
 
 def solve(A, b):
