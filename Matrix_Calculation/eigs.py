@@ -48,11 +48,15 @@ def QR(A):  # QR分解：A \in R^{m,n}，m >= n, O(m^2n)
     return Q, np.triu(A)
 
 
-def QR_iteration(A, T=20):
-    for t in range(T):
+def QR_iteration(A, T=100, eps=1e-1):  # QR迭代: A为n阶方阵
+    n, t = A.shape[0], 0
+    pre, cur = np.zeros(n), np.full(n, 100)
+    while ((cur - pre) ** 2).sum() ** 0.5 >= eps and t <= T:
+        pre = cur
         Q, R = QR(A)
-        A = R @ Q
-    return A
+        A = R @ Q  # A_{k+1}收敛至实Schur补，且正交相似于A
+        cur = np.diagonal(A)
+    return A  # 实Schur补的主对角线为A的特征值
 
 
 if __name__ == '__main__':
@@ -94,6 +98,9 @@ if __name__ == '__main__':
     print(np.round(Q, 4), '\n', np.round(R, 4))
     import scipy.linalg as sl
 
+    np.random.seed(100)
+    A = np.random.random((5, 5)) * 10
+    A = A.T @ A
     print(sl.qr(A))
-    print(np.round(QR_iteration(A,11),4))
+    print(np.round(QR_iteration(A), 4))
     print(sl.eigh(A))
