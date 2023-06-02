@@ -1,5 +1,4 @@
 import numpy as np
-import eig
 import scipy.linalg as sl
 import time
 from sklearn.linear_model import LinearRegression
