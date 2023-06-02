@@ -34,7 +34,7 @@ def inversed_power_method(A, mu=0, T=100, eps=1e-3):  # 反幂法：A-mu*I可逆
     return cur, xi
 
 
-def QR(A):  # QR分解：A \in R^{m,n}，m >= n,rank(A) = n, O(m^2n)
+def QR(A):  # QR分解：A \in R^{m,n}，m >= n, O(m^2n)
     m, n = A.shape
     Q = np.eye(m)
     for i in range(n - 1):
@@ -46,6 +46,13 @@ def QR(A):  # QR分解：A \in R^{m,n}，m >= n,rank(A) = n, O(m^2n)
                       [np.zeros((m - i, i)), sub_H]]) if i > 0 else sub_H  # 单位扩充的Householder变换
         A, Q = H @ A, Q @ H  # 将扩充后的Householder变换作用在A上,累乘Q矩阵
     return Q, np.triu(A)
+
+
+def QR_iteration(A, T=20):
+    for t in range(T):
+        Q, R = QR(A)
+        A = R @ Q
+    return A
 
 
 if __name__ == '__main__':
@@ -82,9 +89,11 @@ if __name__ == '__main__':
     print(t2 - t1)
 
     print(sl.eigh(A))
-    A = np.array([[0, 3, 1], [0, 4, -2], [2, 1, 1], [0, 0, 0]])
+    A = np.array([[0, 3, 1, 0], [0, 4, -2, 0], [2, 1, 1, 0], [0, 0, 0, 0]])
     Q, R = QR(A)
     print(np.round(Q, 4), '\n', np.round(R, 4))
     import scipy.linalg as sl
 
     print(sl.qr(A))
+    print(np.round(QR_iteration(A,11),4))
+    print(sl.eigh(A))
