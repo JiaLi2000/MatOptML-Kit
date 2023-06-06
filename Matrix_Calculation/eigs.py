@@ -34,7 +34,7 @@ def inversed_power_method(A, mu=0, T=100, eps=1e-3):  # 反幂法：A-mu*I可逆
     return cur, xi
 
 
-def QR(A):  # QR分解：A \in R^{m,n}，m >= n, O(m^2n)
+def QR_householder(A):  # QR分解：A \in R^{m,n}，m >= n, O(mn^2)
     m, n = A.shape
     Q = np.eye(m)
     for i in range(n - 1):
@@ -48,12 +48,25 @@ def QR(A):  # QR分解：A \in R^{m,n}，m >= n, O(m^2n)
     return Q, np.triu(A)
 
 
-def QR_iteration(A, T=100, eps=1e-1):  # QR迭代: A为n阶方阵
+def QR_schmidt(A):  # QR分解：A \in R^{m,n}，m >= n, rank(A) = n, O(mn^2)
+    m, n = A.shape
+    Q, R = np.eye(m), np.zeros((n, n))
+    Q[:, :n] = A  # schmidt公式左端为原向量
+    for j in range(n):
+        for i in range(j):
+            R[i, j] = A[:, j] @ Q[:, i]  # 边正交化边单位化，因此系数的分母为1
+            Q[:, j] -= R[i, j] * Q[:, i]  # schmidt公式右端连减
+        R[j, j] = (Q[:, j] @ Q[:, j]) ** 0.5  # 单位正交向量的系数才是R中的元素
+        Q[:, j] /= R[j, j]  # 对正交向量单位化
+    return Q, R
+
+
+def QR_iteration(A, T=100, eps=1e-1):  # QR迭代: A为n阶方阵， O(Tmn^2)
     n, t = A.shape[0], 0
     pre, cur = np.zeros(n), np.full(n, 100)
     while ((cur - pre) ** 2).sum() ** 0.5 >= eps and t <= T:
         pre = cur
-        Q, R = QR(A)
+        Q, R = QR_householder(A)
         A = R @ Q  # A_{k+1}收敛至实Schur补，且正交相似于A
         cur = np.diagonal(A)
     return A  # 实Schur补的主对角线为A的特征值
@@ -94,7 +107,7 @@ if __name__ == '__main__':
 
     print(sl.eigh(A))
     A = np.array([[0, 3, 1, 0], [0, 4, -2, 0], [2, 1, 1, 0], [0, 0, 0, 0]])
-    Q, R = QR(A)
+    Q, R = QR_householder(A)
     print(np.round(Q, 4), '\n', np.round(R, 4))
     import scipy.linalg as sl
 
@@ -104,3 +117,8 @@ if __name__ == '__main__':
     print(sl.qr(A))
     print(np.round(QR_iteration(A), 4))
     print(sl.eigh(A))
+
+    A = np.array([[0, 1, 1], [1, 1, 0], [1, 0, 1], [0, 0, 0]])
+    Q, R = QR_schmidt(A)
+    print(Q)
+    print('------', '\n', R)
