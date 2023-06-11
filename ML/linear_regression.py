@@ -14,6 +14,21 @@ def linear_regression(X, y, method):  # X为nxp矩阵(n个样本,p个特征),且
         return np.linalg.solve(np.diag(S) @ VT, U[:, :p + 1].T @ y)
 
 
+def lr_SGD(X, y, lr, n_epoches, batch_size):
+    n, p = X.shape
+    X = np.hstack((np.ones((n, 1)), X))
+    omega = np.random.RandomState(43).randn(p + 1)
+    for epoch in range(n_epoches):
+        for _ in range(n // batch_size):
+            indexes = np.random.RandomState(43).permutation(n)[:batch_size]
+            batch_X, batch_y = X[indexes], y[indexes]
+            loss = ((batch_X @ omega - batch_y) ** 2).mean()
+            grad = 2 / batch_size * batch_X.T @ (batch_X @ omega - batch_y)
+            omega -= lr * grad
+        print(f'epoch {epoch}, loss {loss}')
+    return omega
+
+
 if __name__ == '__main__':
     from sklearn.linear_model import LinearRegression
 
@@ -34,4 +49,7 @@ if __name__ == '__main__':
     omega = linear_regression(X, y, 'qr')
     print(omega)
     omega = linear_regression(X, y, 'svd')
+    print(omega)
+
+    omega = lr_SGD(X, y, 1e-2, 200, 500)
     print(omega)
