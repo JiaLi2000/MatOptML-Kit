@@ -10,8 +10,8 @@ def linear_regression(X, y, method):  # X为nxp矩阵(n个样本,p个特征),且
         Q, R = np.linalg.qr(X, mode='complete')  # QR分解,这里R是nx(p+1)的
         return np.linalg.solve(R[:p + 1, :], (Q.T @ y)[:p + 1])  # p+1是因为X加了全一列，对应截距
     elif method == 'svd':
-        U, Sigma, VT = np.linalg.svd(X)  # Sigma是一维向量
-        return np.linalg.solve(np.diag(Sigma) @ VT, U[:, :p + 1].T @ y)
+        U, S, VT = np.linalg.svd(X)  # Sigma是一维向量
+        return np.linalg.solve(np.diag(S) @ VT, U[:, :p + 1].T @ y)
 
 
 if __name__ == '__main__':
@@ -24,8 +24,6 @@ if __name__ == '__main__':
     x_2 = np.linspace(-10, 10, n)
     y = 10 + 5 * x_1 + 3 * x_2
     X = np.hstack((x_1[:, None] + np.random.normal(0, 2, (n, 1)), x_2[:, None] + np.random.normal(0, 1, (n, 1))))
-
-    n, p = X.shape
 
     model = LinearRegression()
     model.fit(X, y)
