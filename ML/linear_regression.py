@@ -47,6 +47,22 @@ def lr_NAG(X, y, lr, gamma, n_epoches, batch_size):  # Nesterov’s Accelerated 
     return omega
 
 
+def lr_RMSProp(X, y, lr, rho, n_epoches, batch_size):  # RMSProp，rho=0时退化为AdaGrad
+    n, p = X.shape
+    X, eps = np.hstack((np.ones((n, 1)), X)), 1e-8
+    omega, G = np.random.RandomState(43).randn(p + 1), np.ones(p + 1)  # G为历史梯度的累积平方和
+    for epoch in range(n_epoches):
+        for _ in range(n // batch_size):
+            indexes = np.random.RandomState(43).permutation(n)[:batch_size]
+            batch_X, batch_y = X[indexes], y[indexes]
+            loss = ((batch_X @ omega - batch_y) ** 2).mean()
+            grad = 2 / batch_size * batch_X.T @ (batch_X @ omega - batch_y)
+            omega -= lr / (G + eps) * grad  # eps 防止下溢
+            G = rho * G + (1 - rho) * grad ** 2  # 对历史梯度的累积平方和进行指数加权平均
+        print(f'epoch {epoch}, loss {loss}')
+    return omega
+
+
 def lr_newton(X, y, T):  # 牛顿法
     n, p = X.shape
     X = np.hstack((np.ones((n, 1)), X))
@@ -97,4 +113,10 @@ if __name__ == '__main__':
     print(omega)
 
     omega = lr_newton(X, y, 5)  # Newton method
+    print(omega)
+
+    omega = lr_SGD(X, y, 1e-3, 0.9, 12, 64)  # RMSProp
+    print(omega)
+
+    omega = lr_SGD(X, y, 1e-3, 0, 100, 64)  # AdaGrad
     print(omega)
