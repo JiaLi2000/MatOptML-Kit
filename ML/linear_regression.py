@@ -47,6 +47,19 @@ def lr_NAG(X, y, lr, gamma, n_epoches, batch_size):  # Nesterov’s Accelerated 
     return omega
 
 
+def lr_newton(X, y, T):  # 牛顿法
+    n, p = X.shape
+    X = np.hstack((np.ones((n, 1)), X))
+    omega = np.random.RandomState(43).randn(p + 1)
+    for t in range(T):
+        loss = ((X @ omega - y) ** 2).mean()
+        grad = 2 / n * X.T @ (X @ omega - y)
+        H = 2 / n * X.T @ X  # Hessian矩阵
+        omega -= np.linalg.inv(H) @ grad
+        print(f't {t}, loss {loss}')
+    return omega
+
+
 if __name__ == '__main__':
     from sklearn.linear_model import LinearRegression
 
@@ -81,4 +94,7 @@ if __name__ == '__main__':
     omega = lr_SGD(X, y, 5e-3, 0.9, 10, 64)  # mini-batch with momentum
     print(omega)
     omega = lr_NAG(X, y, 5e-3, 0.9, 5, 64)  # mini-batch with Nesterov’s Accelerated Gradient
+    print(omega)
+
+    omega = lr_newton(X, y, 5)  # Newton method
     print(omega)
