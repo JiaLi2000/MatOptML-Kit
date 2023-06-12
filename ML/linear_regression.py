@@ -14,7 +14,23 @@ def linear_regression(X, y, method):  # X为nxp矩阵(n个样本,p个特征),且
         return np.linalg.solve(np.diag(S) @ VT, U[:, :p + 1].T @ y)
 
 
-def lr_SGD(X, y, lr, gamma, n_epoches, batch_size):  # 带动量的小批量梯度下降
+def lr_SGD(X, y, lr, gamma, n_epoches, batch_size):  # 带动量的小批量梯度下降，gamma=0时退化为小批量梯度下降
+    n, p = X.shape
+    X = np.hstack((np.ones((n, 1)), X))
+    omega, delta = np.random.RandomState(43).randn(p + 1), 0  # delta为历史变化量的指数加权平均
+    for epoch in range(n_epoches):
+        for _ in range(n // batch_size):
+            indexes = np.random.RandomState(43).permutation(n)[:batch_size]
+            batch_X, batch_y = X[indexes], y[indexes]
+            loss = ((batch_X @ omega - batch_y) ** 2).mean()
+            grad = 2 / batch_size * batch_X.T @ (batch_X @ omega - batch_y)
+            delta = gamma * delta - lr * grad  # gamma 为动量系数，利用当前点的梯度对上次迭代的变化量进行纠正
+            omega += delta
+        print(f'epoch {epoch}, loss {loss}')
+    return omega
+
+
+def lr_NAG(X, y, lr, gamma, n_epoches, batch_size):  # Nesterov’s Accelerated Gradient
     n, p = X.shape
     X = np.hstack((np.ones((n, 1)), X))
     omega, delta = np.random.RandomState(43).randn(p + 1), 0
@@ -23,9 +39,10 @@ def lr_SGD(X, y, lr, gamma, n_epoches, batch_size):  # 带动量的小批量梯�
             indexes = np.random.RandomState(43).permutation(n)[:batch_size]
             batch_X, batch_y = X[indexes], y[indexes]
             loss = ((batch_X @ omega - batch_y) ** 2).mean()
-            grad = 2 / batch_size * batch_X.T @ (batch_X @ omega - batch_y)
-            delta = gamma * delta - lr * grad  # gamma 为动量系数
-            omega += delta
+            omega_ahead = omega + gamma * delta  # 前瞻点，用作下个点的估计
+            grad = 2 / batch_size * batch_X.T @ (batch_X @ omega_ahead - batch_y)
+            delta = gamma * delta - lr * grad  # 利用前瞻点的梯度对上次迭代的变化量进行纠正
+            omega += delta  # 注意在原点上更新，而不是前瞻点
         print(f'epoch {epoch}, loss {loss}')
     return omega
 
@@ -62,4 +79,6 @@ if __name__ == '__main__':
     print(omega)
 
     omega = lr_SGD(X, y, 5e-3, 0.9, 10, 64)  # mini-batch with momentum
+    print(omega)
+    omega = lr_NAG(X, y, 5e-3, 0.9, 5, 64)  # mini-batch with Nesterov’s Accelerated Gradient
     print(omega)
