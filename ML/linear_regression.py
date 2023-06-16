@@ -116,6 +116,30 @@ def lr_newton(X, y, T):  # 牛顿法
     return omega
 
 
+def lr_torch(X, y, lr, n_epoches, batch_size):
+    import torch
+    import torch.optim as optim
+
+    torch.manual_seed(43)
+    X, y = torch.from_numpy(X), torch.from_numpy(y)
+    n, p = X.shape
+    X = torch.hstack((torch.ones((n, 1)), X))
+    omega = torch.randn(p + 1, requires_grad=True, dtype=torch.float64)
+    optimizer = optim.SGD([omega], lr)
+    for epoch in range(n_epoches):
+        for _ in range(n // batch_size):
+            indexes = np.random.permutation(n)[:batch_size]
+            batch_X, batch_y = X[indexes], y[indexes]
+            loss = ((batch_X @ omega - batch_y) ** 2).mean()
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        print(f'epoch {epoch}, loss {loss}')
+    return omega
+
+
 if __name__ == '__main__':
     from sklearn.linear_model import LinearRegression
 
@@ -162,4 +186,7 @@ if __name__ == '__main__':
     print(omega)
 
     omega = lr_Adam(X, y, 5e-1, 0.9, 0.999, 12, 64)  # Adam
+    print(omega)
+
+    omega = lr_torch(X, y, 5e-3, 200, 64)  # torch
     print(omega)
