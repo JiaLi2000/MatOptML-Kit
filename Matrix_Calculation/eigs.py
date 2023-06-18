@@ -31,8 +31,7 @@ def inversed_power_method(A, mu=0, T=100, eps=1e-3):  # 反幂法：A-mu*I可逆
         xi = np.linalg.solve(A - mu * I, xi)  # 用解方程组代替求逆(系数矩阵固定，因此可用LU分解加速)
         xi = xi / ((xi ** 2).sum() ** 0.5)  # 标准化特征向量中间结果，防止其元素上下溢出
         cur = xi[None, :] @ A @ xi  # 由单位特征向量计算对应特征值
-    return cur\
-        , xi
+    return cur, xi
 
 
 def QR_householder(A):  # QR分解：A \in R^{m,n}，m >= n, O(mn^2)

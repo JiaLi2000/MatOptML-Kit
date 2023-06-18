@@ -5,7 +5,7 @@ def linear_regression(X, y, method):  # X为nxp矩阵(n个样本,p个特征),且
     n, p = X.shape
     X = np.hstack((np.ones((n, 1)), X))
     if method == 'inv':
-        return np.linalg.inv(X.T @ X) @ X.T @ y  # 正规方程组直接求逆,也可以用LU分解
+        return np.linalg.inv(X.T @ X) @ X.T @ y  # 正规方程组直接求逆,也可以用LU分解、Cholesky分解
     elif method == 'qr':
         Q, R = np.linalg.qr(X, mode='complete')  # QR分解,这里R是nx(p+1)的
         return np.linalg.solve(R[:p + 1, :], (Q.T @ y)[:p + 1])  # p+1是因为X加了全一列，对应截距
