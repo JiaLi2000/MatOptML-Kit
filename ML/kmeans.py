@@ -1,5 +1,4 @@
 import numpy as np
-import sklearn.datasets
 
 
 def kmeans(X, k, T, eps):  # kmeans++, O(Tnkd)
@@ -21,6 +20,7 @@ def kmeans(X, k, T, eps):  # kmeans++, O(Tnkd)
 
 if __name__ == "__main__":
     from sklearn.cluster import KMeans
+    import sklearn.datasets
 
     X = sklearn.datasets.load_iris().data
     model = KMeans(n_clusters=3, n_init='auto')
