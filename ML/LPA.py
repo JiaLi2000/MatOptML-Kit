@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 
 
-def LPA(G: nx.Graph, T=10):
+def LPA(G, T=10):
     np.random.seed(43)
     label = np.array(G.nodes)  # 各点自成一簇，节点编号作为簇编号
     V = np.array(G.nodes).copy()
