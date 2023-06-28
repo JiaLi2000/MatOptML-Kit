@@ -1,4 +1,5 @@
 import numpy as np
+import networkx as nx
 
 
 def kmeans(X, k, T, eps):  # kmeans++, O(Tnkd)
@@ -18,6 +19,16 @@ def kmeans(X, k, T, eps):  # kmeans++, O(Tnkd)
     return C_new, label
 
 
+def spectral(G, k, T, eps):  # min Ncut
+    L = nx.laplacian_matrix(G, sorted(G.nodes)).toarray()  # L = D - W
+    Dsqinv = np.diag(1 / L.diagonal() ** 2)  # 度矩阵的-1/2次幂
+    L_sys = Dsqinv @ L @ Dsqinv
+    eigvalues, eigvectors = np.linalg.eigh(L_sys)  # 对标准化的Laplacian特征分解
+    H = Dsqinv @ eigvectors[:, :k]  # top-k small 的最优解 变换后 作为谱嵌入
+    _, label = kmeans(H, k, T, eps)
+    return label
+
+
 if __name__ == "__main__":
     from sklearn.cluster import KMeans
     import sklearn.datasets
@@ -28,3 +39,13 @@ if __name__ == "__main__":
     print(model.cluster_centers_, model.labels_)
     C, labels = kmeans(X, 3, 1000, 1e-3)
     print(C, labels)
+
+    import matplotlib.pyplot as plt
+
+    G = nx.karate_club_graph()
+    label = spectral(G, 3, 1000, 1e-3)
+    print(label)
+    pos = nx.spring_layout(G)  # 节点的布局为spring型
+    plt.figure(figsize=(8, 6))  # 图片大小
+    nx.draw_networkx(G, pos=pos, node_color=label)
+    plt.show()
