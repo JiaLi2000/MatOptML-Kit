@@ -12,7 +12,7 @@ def OLS(A, b, method):  # A为mxn列满秩矩阵, 求最小二乘问题 min ||Ax
         U, S, VT = np.linalg.svd(A)  # Sigma是一维向量
         return np.linalg.solve(np.diag(S) @ VT, U[:, :p].T @ b)
 
-# 这里可以补充一下SVD算法和求逆算法
+# 这里可以补充一下SVD算法
 
 
 

@@ -48,6 +48,16 @@ def solve(A, b):
     return x
 
 
+def inv(A):  # 通过LU分解求解AX = I来求逆,O(n^3)
+    n = A.shape[0]
+    A_inv = np.eye(n)
+    P, L, U = PLU(A)
+    for i in range(n):
+        y = forward_sub(L, P @ A_inv[:, i])
+        A_inv[:, i] = backward_sub(U, y)
+    return A_inv
+
+
 if __name__ == '__main__':
     np.random.seed(10)
     A = np.random.random((5, 5)) * 10
@@ -88,3 +98,9 @@ if __name__ == '__main__':
     b = np.array([5.0, 3, 7, 6, 2])
     print(solve(A.copy(), b))
     print(np.linalg.solve(A, b))
+
+    print('------')
+    A = np.random.random((5, 5)) * 10
+    print(np.linalg.inv(A))
+    A_inv = inv(A)
+    print(A_inv)
