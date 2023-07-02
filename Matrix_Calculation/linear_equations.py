@@ -58,6 +58,14 @@ def inv(A):  # 通过LU分解求解AX = I来求逆,O(n^3)
     return A_inv
 
 
+def det(A):  # 通过LU分解求A的行列式O(n^3),|A| = |P||L||U|= +-|U|
+    n = A.shape[0]
+    P, L, U = PLU(A)
+    p = P.argmax(axis=1)  # 通过置换矩阵P对应置换p的逆序数,确定单位矩阵的行变换次数
+    count = len([1 for i in range(1, n) for j in range(0, i) if p[j] > p[i]])
+    return U.diagonal().prod() if count % 2 == 0 else -U.diagonal().prod()  # 行列式奇负偶不变
+
+
 if __name__ == '__main__':
     np.random.seed(10)
     A = np.random.random((5, 5)) * 10
@@ -104,3 +112,8 @@ if __name__ == '__main__':
     print(np.linalg.inv(A))
     A_inv = inv(A)
     print(A_inv)
+
+    print('------')
+    print(np.linalg.det(A))
+    A_det = det(A)
+    print(A_det)
