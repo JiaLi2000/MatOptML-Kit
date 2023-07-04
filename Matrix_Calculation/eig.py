@@ -70,8 +70,6 @@ def QR_iteration(A, T=100, eps=1e-1):  # QR迭代: A为n阶方阵， O(Tn^3)
         Q, R = QR_householder(A)
         A = R @ Q  # A_{k+1}收敛至实Schur补，且正交相似于A
         cur = np.diagonal(A)
-    print(np.round(A, 2))
-    print(t)
     return np.diagonal(A).copy()  # 实Schur补的主对角线为A的特征值
 
 
@@ -82,8 +80,9 @@ def eigs(A, T=10, eps=1e-1):  # 对特征值绝对值互异的实对称矩阵的
     for i in range(n):
         eigvalues[i], eigvectors[:, i] = inversed_power_method(A, eigvalues[i] + eps, 100 * T,
                                                                1e-2 * eps)  # 为真实特征值加扰动,否则反幂法对应矩阵不可逆
-    eigvectors = QR_schmidt(eigvectors)  # schmidt 正交化, 当特征值非互异时,反幂法失效，只能用其他方法求特征向量
-    return eigvalues, eigvectors
+    eigvectors, _ = QR_schmidt(eigvectors)  # schmidt 正交化, 当特征值非互异时,反幂法失效，只能用其他方法求特征向量
+    desc_indexes = np.argsort(eigvalues)[::-1]  # 按特征值的值降序排列
+    return eigvalues[desc_indexes], eigvectors[:, desc_indexes]
 
 
 if __name__ == '__main__':
@@ -154,4 +153,3 @@ if __name__ == '__main__':
     print(sl.eigh(A))
     QR_iteration(A, T=100, eps=1e-10)
     print(eigs(A, 100, 1e-1))
-
