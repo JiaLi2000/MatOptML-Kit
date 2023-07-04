@@ -22,7 +22,7 @@ def deflated_power_method(A, k, mu=0, T=200, eps=1e-5):  # 降阶的幂法: A为
     return eigvalues, eigvectors
 
 
-def inversed_power_method(A, mu=0.0, T=100, eps=1e-3):  # 反幂法：A-mu*I可逆,位移mu与待估计特征值接近. O(Tn^3)
+def inversed_power_method(A, mu=0.0, T=1000, eps=1e-3):  # 反幂法：A-mu*I可逆,位移mu与待估计特征值接近. O(Tn^3)
     n, t = A.shape[0], 0
     xi, I = np.random.random(n), np.eye(n)
     pre, cur = 0, 1
@@ -78,7 +78,7 @@ def eigs(A, T=10, eps=1e-1):  # 对特征值绝对值互异的实对称矩阵的
     eigvalues = QR_iteration(A.copy(), T, eps)
     eigvectors = np.zeros((n, n))
     for i in range(n):
-        eigvalues[i], eigvectors[:, i] = inversed_power_method(A, eigvalues[i] + eps, 100 * T,
+        eigvalues[i], eigvectors[:, i] = inversed_power_method(A, eigvalues[i] + eps, 1000 * T,
                                                                1e-2 * eps)  # 为真实特征值加扰动,否则反幂法对应矩阵不可逆
     eigvectors, _ = QR_schmidt(eigvectors)  # schmidt 正交化, 当特征值非互异时,反幂法失效，只能用其他方法求特征向量
     desc_indexes = np.argsort(eigvalues)[::-1]  # 按特征值的值降序排列

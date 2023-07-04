@@ -28,7 +28,7 @@ def null(A):  # 计算mxn矩阵A为的零空间 Nul(A), O(n^3)。注意：这里
     R *= -1
     np.fill_diagonal(R, 1)  # 行最简后,将自由向量的对角位置置1,其他位置取反，得到自由基
     bases = R[:, free_indexes]
-    normalized_bases, _ = eig.QR_householder(bases)  # 对自由基正交化
+    normalized_bases, _ = eig.QR_schmidt(bases)  # 对自由基正交化
     return normalized_bases[:, :len(bases) - 1]
 
 
@@ -81,3 +81,7 @@ if __name__ == '__main__':
     print(U, S, VT)
     U, S, VT = svd(A)
     print(U, S, VT)
+
+    print(np.round(A - U@S@VT,4))
+    print(np.round(U.T @ U,4))
+    print(np.round(VT.T @ VT,4))
