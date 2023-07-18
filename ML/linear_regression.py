@@ -14,75 +14,6 @@ def linear_regression(X, y, method):  # X为nxp矩阵(n个样本,p个特征),且
         return np.linalg.solve(np.diag(S) @ VT, U[:, :p + 1].T @ y)
 
 
-def lr_SGD(X, y, lr, gamma, n_epoches, batch_size):  # 带动量的小批量梯度下降，gamma=0时退化为小批量梯度下降
-    n, p = X.shape
-    np.random.seed(43)
-    X = np.hstack((np.ones((n, 1)), X))
-    omega, delta = np.random.randn(p + 1), 0  # delta为历史变化量的指数加权平均
-    for epoch in range(n_epoches):
-        for _ in range(n // batch_size):
-            indexes = np.random.permutation(n)[:batch_size]
-            batch_X, batch_y = X[indexes], y[indexes]
-            loss = ((batch_X @ omega - batch_y) ** 2).mean()
-            grad = 2 / batch_size * batch_X.T @ (batch_X @ omega - batch_y)
-            delta = gamma * delta - lr * grad  # gamma 为动量系数，利用当前点的梯度对上次迭代的变化量进行纠正
-            omega += delta
-        print(f'epoch {epoch}, loss {loss}')
-    return omega
-
-
-def lr_NAG(X, y, lr, gamma, n_epoches, batch_size):  # Nesterov’s Accelerated Gradient
-    n, p = X.shape
-    np.random.seed(43)
-    X = np.hstack((np.ones((n, 1)), X))
-    omega, delta = np.random.randn(p + 1), 0
-    for epoch in range(n_epoches):
-        for _ in range(n // batch_size):
-            indexes = np.random.permutation(n)[:batch_size]
-            batch_X, batch_y = X[indexes], y[indexes]
-            loss = ((batch_X @ omega - batch_y) ** 2).mean()
-            omega_ahead = omega + gamma * delta  # 前瞻点，用作下个点的估计
-            grad = 2 / batch_size * batch_X.T @ (batch_X @ omega_ahead - batch_y)
-            delta = gamma * delta - lr * grad  # 利用前瞻点的梯度对上次迭代的变化量进行纠正
-            omega += delta  # 注意在原点上更新，而不是前瞻点
-        print(f'epoch {epoch}, loss {loss}')
-    return omega
-
-
-def lr_AdaGrad(X, y, lr, n_epoches, batch_size):  # AdaGrad
-    n, p = X.shape
-    np.random.seed(43)
-    X, eps = np.hstack((np.ones((n, 1)), X)), 1e-8
-    omega, G = np.random.randn(p + 1), np.zeros(p + 1)  # G为历史梯度的累积平方和
-    for epoch in range(n_epoches):
-        for _ in range(n // batch_size):
-            indexes = np.random.permutation(n)[:batch_size]
-            batch_X, batch_y = X[indexes], y[indexes]
-            loss = ((batch_X @ omega - batch_y) ** 2).mean()
-            grad = 2 / batch_size * batch_X.T @ (batch_X @ omega - batch_y)
-            G += grad ** 2  # 历史梯度的累积平方和
-            omega -= lr * grad / (np.sqrt(G) + eps)  # eps 防止下溢
-        print(f'epoch {epoch}, loss {loss}')
-    return omega
-
-
-def lr_RMSProp(X, y, lr, rho, n_epoches, batch_size):  # RMSProp
-    n, p = X.shape
-    np.random.seed(43)
-    X, eps = np.hstack((np.ones((n, 1)), X)), 1e-8
-    omega, G = np.random.randn(p + 1), np.zeros(p + 1)  # G为历史梯度的累积平方和的指数加权平均
-    for epoch in range(n_epoches):
-        for _ in range(n // batch_size):
-            indexes = np.random.permutation(n)[:batch_size]
-            batch_X, batch_y = X[indexes], y[indexes]
-            loss = ((batch_X @ omega - batch_y) ** 2).mean()
-            grad = 2 / batch_size * batch_X.T @ (batch_X @ omega - batch_y)
-            G = rho * G + (1 - rho) * grad ** 2  # 对历史梯度的累积平方和进行指数加权平均
-            omega -= lr * grad / (np.sqrt(G) + eps)  # eps 防止下溢
-        print(f'epoch {epoch}, loss {loss}')
-    return omega
-
-
 def lr_Adam(X, y, lr, rho1, rho2, n_epoches, batch_size):  # Adam
     n, p = X.shape
     np.random.seed(43)
@@ -103,43 +34,6 @@ def lr_Adam(X, y, lr, rho1, rho2, n_epoches, batch_size):  # Adam
     return omega
 
 
-def lr_newton(X, y, T):  # 牛顿法
-    n, p = X.shape
-    X = np.hstack((np.ones((n, 1)), X))
-    omega = np.random.RandomState(43).randn(p + 1)
-    for t in range(T):
-        loss = ((X @ omega - y) ** 2).mean()
-        grad = 2 / n * X.T @ (X @ omega - y)
-        H = 2 / n * X.T @ X  # Hessian矩阵
-        omega -= np.linalg.inv(H) @ grad
-        print(f't {t}, loss {loss}')
-    return omega
-
-
-def lr_torch(X, y, lr, n_epoches, batch_size):
-    import torch
-    import torch.optim as optim
-
-    torch.manual_seed(43)
-    X, y = torch.from_numpy(X), torch.from_numpy(y)
-    n, p = X.shape
-    X = torch.hstack((torch.ones((n, 1)), X))
-    omega = torch.randn(p + 1, requires_grad=True, dtype=torch.float64)
-    optimizer = optim.SGD([omega], lr)
-    for epoch in range(n_epoches):
-        for _ in range(n // batch_size):
-            indexes = np.random.permutation(n)[:batch_size]
-            batch_X, batch_y = X[indexes], y[indexes]
-            loss = ((batch_X @ omega - batch_y) ** 2).mean()
-
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-        print(f'epoch {epoch}, loss {loss}')
-    return omega
-
-
 if __name__ == '__main__':
     from sklearn.linear_model import LinearRegression
 
@@ -154,39 +48,18 @@ if __name__ == '__main__':
     model = LinearRegression()
     model.fit(X, y)
     print(model.intercept_, model.coef_)
+    print(model.score(X, y))
 
     omega = linear_regression(X, y, 'inv')
     print(omega)
+    import utils
+
+    print(utils.r2(X @ omega[1:] + omega[0], y))
+
     omega = linear_regression(X, y, 'qr')
     print(omega)
     omega = linear_regression(X, y, 'svd')
     print(omega)
 
-    omega = lr_SGD(X, y, 1e-2, 0, 200, n)  # batch
-    print(omega)
-
-    omega = lr_SGD(X, y, 5e-5, 0, 10, 1)  # SGD
-    print(omega)
-
-    omega = lr_SGD(X, y, 5e-3, 0, 200, 64)  # mini-batch
-    print(omega)
-
-    omega = lr_SGD(X, y, 5e-3, 0.9, 10, 64)  # mini-batch with momentum
-    print(omega)
-    omega = lr_NAG(X, y, 5e-3, 0.9, 5, 64)  # mini-batch with Nesterov’s Accelerated Gradient
-    print(omega)
-
-    omega = lr_newton(X, y, 5)  # Newton method
-    print(omega)
-
-    omega = lr_AdaGrad(X, y, 5e-1, 12, 64)  # AdaGrad
-    print(omega)
-
-    omega = lr_RMSProp(X, y, 5e-1, 0.9, 12, 64)  # RMSProp
-    print(omega)
-
     omega = lr_Adam(X, y, 5e-1, 0.9, 0.999, 12, 64)  # Adam
-    print(omega)
-
-    omega = lr_torch(X, y, 5e-3, 200, 64)  # torch
     print(omega)
