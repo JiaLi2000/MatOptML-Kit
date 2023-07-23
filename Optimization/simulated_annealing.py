@@ -26,6 +26,6 @@ if __name__ == '__main__':
     v = np.array([8, 11, 6, 4])
     w = np.array([5, 7, 4, 3])
     b = 14
-    x0 = np.array([1, 1, 0, 0])
+    x0 = np.array([0, 1, 0, 0])
     x_best, f_best = sa(x0, 10, 0.99, 20, v, w, b)
     print(x_best, f_best)
