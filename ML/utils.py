@@ -1,4 +1,6 @@
 import numpy as np
+import networkx as nx
+import scipy.sparse as sp
 
 
 # regression
@@ -68,6 +70,51 @@ def auc_roc(y_score, y):
         area += (pre_TPR + cur_TPR) * -(cur_FPR - pre_FPR) / 2  # 梯形法则(小梯形面积求和)代替积分
         pre_FPR, pre_TPR = cur_FPR, cur_TPR  # 下一个小梯形
     return area
+
+
+# anomaly detection
+def precision_at_k(y_pre, y, k):  # top-k异常值分数中真正为异常的占比
+    topk_indexs = np.argsort(y_pre)[::-1][:k]  # top-k异常值分数的下标
+    return np.count_nonzero(y[topk_indexs] == 1) / k
+
+
+def recall_at_k(y_pre, y, k):  # 预测top-k中真异常值数与总真异常值数之比
+    n_anomalies = np.count_nonzero(y)
+    topk_indexs = np.argsort(y_pre)[::-1][:k]
+    return np.count_nonzero((y[topk_indexs] == 1) & (y_pre[topk_indexs] == 1)) / n_anomalies
+
+
+# clustering
+
+def NMI(y_pre, y):  # 归一化互信息,要求有聚类标签(忽略排列)
+    pass
+
+
+
+
+def get_ncut(G: nx.graph, phi):
+    n, W = len(phi), nx.adjacency_matrix(G, sorted(G.nodes))
+    k = phi.max() + 1
+    Y_0 = sp.coo_matrix(([1] * n, (range(n), phi)), dtype=int).tocsr()
+    D = W.dot(Y_0).toarray()  # d_ij = sum_v of W_{iv}, where v is in cluster j
+    degrees = D.sum(axis=1)
+    volumes = np.array([degrees[phi == j].sum() for j in range(k)])
+    cuts = volumes - (D * Y_0.toarray()).sum(axis=0)  # the right item just is association of clusters.
+    f = (cuts / volumes).sum()
+    return f
+
+
+def modularity(G: nx.Graph, label):  # 无向带权图模块度计算
+    n, W = len(label), nx.adjacency_matrix(G, sorted(G.nodes))
+    k = label.max() + 1
+    Y = sp.coo_matrix(([1] * n, (range(n), label)), dtype=int).tocsr()
+    D = W.dot(Y).toarray()  # d_ij = sum_v of W_{iv}, where v is in cluster j
+    degrees = D.sum(axis=1)
+    m = degrees.sum() / 2
+    volumes = np.array([degrees[label == j].sum() for j in range(k)])
+    asso = (D * Y.toarray()).sum(axis=0)  # the right item just is association of clusters.
+    Q = (asso / (2 * m) - (volumes / (2 * m)) ** 2).sum()
+    return Q
 
 
 # others

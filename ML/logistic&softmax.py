@@ -66,6 +66,8 @@ if __name__ == '__main__':
 
     print(sme.roc_auc_score(y_train, score))
     print(utils.auc_roc(score, y_train))
+    print(utils.auc_roc(np.full_like(score,0.5), y_train))
+
     model = LogisticRegression(penalty=None)
     model.fit(X, y)
     print(model.intercept_, model.coef_)
