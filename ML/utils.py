@@ -105,6 +105,17 @@ def NMI(y_pre, y):  # 归一化互信息,要求有聚类标签(忽略排列)
     return 2 * (entropy_y_pre + entropy_y - joint_entropy_) / (entropy_y_pre + entropy_y)
 
 
+def silhouette(X, labels):  # 轮廓系数
+    k = len(np.unique(labels))
+    a_self = lambda x, X_: (((x - X_) ** 2).sum(axis=1) ** 0.5).sum() / (len(X_) - 1)  # 点x到X_中点平均距离(X包含x,结果不含x)
+    a_other = lambda x, X_: (((x - X_) ** 2).sum(axis=1) ** 0.5).sum() / len(X_)  # 点x到X_中点平均距离(X不含x)
+    b = lambda i: np.array(
+        [a_other(X[i, :], X[labels == j]) for j in range(k) if j != labels[i]]).min()  # 点i到其他簇的最小平均距离
+    s = lambda i: (b(i) - a_self(X[i, :], X[labels == labels[i]])) / max(b(i),
+                                                                         a_self(X[i, :], X[labels == labels[i]]))
+    return np.array([s(i) for i in range(len(X))]).mean()
+
+
 def ncut(G: nx.graph, phi):
     n, W = len(phi), nx.adjacency_matrix(G, sorted(G.nodes))
     k = phi.max() + 1
