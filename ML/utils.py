@@ -37,7 +37,7 @@ def recall(y_pre, y):  # TPR
     return np.count_nonzero((y == 1) & (y_pre == 1)) / np.count_nonzero(y == 1)
 
 
-def FPR(y_pre, y):  # 假阳性预测个数/阴性总数
+def FPR(y_pre, y):  # 假阳性预测个数/阴性总数，误报率
     return np.count_nonzero((y == 0) & (y_pre == 1)) / np.count_nonzero(y == 0)
 
 
@@ -66,7 +66,7 @@ def auc_roc(y_score, y):
         pairs.append([FPR_, TPR_])
     area = 0
     pre_FPR, pre_TPR = pairs[0]
-    for cur_FPR, cur_TPR in pairs[1:]:  # FPR随阈值增大而减小
+    for cur_FPR, cur_TPR in pairs[1:]:  # recall随阈值增加而减小，阈值0对应(1,1), 阈值1对应(0,0)
         area += (pre_TPR + cur_TPR) * -(cur_FPR - pre_FPR) / 2  # 梯形法则(小梯形面积求和)代替积分
         pre_FPR, pre_TPR = cur_FPR, cur_TPR  # 下一个小梯形
     return area
@@ -85,14 +85,27 @@ def recall_at_k(y_pre, y, k):  # 预测top-k中真异常值数与总真异常值
 
 
 # clustering
+def entropy(y):  # 聚类指示向量对应k点分布的熵
+    _, cluster_counts = np.unique(y, return_counts=True)
+    p = cluster_counts / cluster_counts.sum()
+    return (-p * np.log2(p)).sum()
+
+
+def joint_entropy(y_pre, y):  # 两聚类指派向量对应分布的联合熵
+    joint = np.array(list(zip(y_pre, y)))
+    _, cluster_counts = np.unique(joint, axis=0, return_counts=True)
+    p = cluster_counts / cluster_counts.sum()
+    return (-p * np.log2(p)).sum()
+
 
 def NMI(y_pre, y):  # 归一化互信息,要求有聚类标签(忽略排列)
-    pass
+    entropy_y_pre = entropy(y_pre)
+    entropy_y = entropy(y)
+    joint_entropy_ = joint_entropy(y_pre, y)  # MI(X,Y) = 熵(X) + 熵(Y) - 联合熵(X,Y)
+    return 2 * (entropy_y_pre + entropy_y - joint_entropy_) / (entropy_y_pre + entropy_y)
 
 
-
-
-def get_ncut(G: nx.graph, phi):
+def ncut(G: nx.graph, phi):
     n, W = len(phi), nx.adjacency_matrix(G, sorted(G.nodes))
     k = phi.max() + 1
     Y_0 = sp.coo_matrix(([1] * n, (range(n), phi)), dtype=int).tocsr()
