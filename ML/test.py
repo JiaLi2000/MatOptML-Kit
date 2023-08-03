@@ -64,30 +64,73 @@ def kmeans(X, k, T, eps, seed):  # kmeans++, O(Tnkd)
 #             break
 #     return C_new, label
 
+def pagerank(W: np.array, beta, T):
+    n = len(W)
+    degrees = W.sum(axis=1)
+    D_inv = np.diag(1 / degrees)
+    P = D_inv @ W
+    a = (degrees == 0).astype(int)
+    P_prime = P + a[:, None] @ np.ones(n)[None, :] / n
+    P_tilde = beta * P_prime + (1 - beta) * np.ones((n, n)) / n
+    pr = np.ones((1, n)) / n  # 行向量
+    for t in range(T):
+        pr = pr @ P_tilde  # 列是入邻居
+    return pr
+
+
+def pca(X: np.array, k):
+    n, d = X.shape
+    X_prime = X - X.mean(axis=0)
+    cov = X_prime.T @ X_prime  # 这里不除以n-1,对结果无影响
+    eigvalues, eigvectors = np.linalg.eigh(cov)  # 默认按特征值升序
+    W = eigvectors[:, range(-1, -k - 1, -1)] # 后k个即前k大特征值对应的特征向量，倒序取是为了第一列对应主特征向量
+    return X @ W, W  # W结果未必唯一，因为特征向量不唯一,但标准化后应只差正负号
+
 
 if __name__ == "__main__":
     from sklearn.datasets import load_iris
     from sklearn.linear_model import LogisticRegression
     from sklearn.metrics import roc_auc_score
 
-    iris = load_iris()
-    X = iris.data
-    y = iris.target
-    y[y == 2] = 0
-    model = LogisticRegression()
-    model.fit(X, y)
-    y_score = model.predict_proba(X)[:, 1]
-    print(roc_auc_score(y, y_score))
-    print(auc_roc(y_score, y))
+    # iris = load_iris()
+    # X = iris.data
+    # y = iris.target
+    # y[y == 2] = 0
+    # model = LogisticRegression()
+    # model.fit(X, y)
+    # y_score = model.predict_proba(X)[:, 1]
+    # print(roc_auc_score(y, y_score))
+    # print(auc_roc(y_score, y))
+    #
+    # from sklearn.datasets import load_iris
+    # from sklearn.cluster import KMeans
+    #
+    # iris = load_iris()
+    # X = iris.data
+    # model = KMeans(3)
+    # model.fit(X)
+    # print(model.cluster_centers_)
+    # print(model.labels_)
+    # centers, labels = kmeans(X, 3, 10000, 1e-9, 12)
+    # print(centers, labels)
+    # import networkx as nx
+    #
+    # G = nx.karate_club_graph()
+    # W = nx.adjacency_matrix(G, nodelist=sorted(G.nodes)).toarray()
+    # pr = pagerank(W, 0.85, 100)
+    # print(pr)
+    # print(nx.pagerank(G))
 
     from sklearn.datasets import load_iris
-    from sklearn.cluster import KMeans
-
     iris = load_iris()
     X = iris.data
-    model = KMeans(3)
+    new_X, W = pca(X,2)
+    print(new_X)
+    print(W)
+    from sklearn.decomposition import PCA
+    print('------')
+    model = PCA(2)
     model.fit(X)
-    print(model.cluster_centers_)
-    print(model.labels_)
-    centers, labels = kmeans(X, 3, 10000, 1e-9, 12)
-    print(centers, labels)
+    new_X = model.transform(X)
+    print(new_X)
+    print(model.components_)

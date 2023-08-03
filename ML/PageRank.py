@@ -11,8 +11,8 @@ def PageRank(G: nx.DiGraph, beta, T):  # 避免泄漏的PageRank，解决含0出
     P_tilde = beta * P_prime + (1 - beta) / n * np.ones((n, n))  # 消除0出度子图,转移概率矩阵与全1/n矩阵作权和
     pi = np.full(n, 1 / n)
     for t in range(T):  # 不可约非周期Markov链平稳分布存在且唯一
-        pi = P_tilde.T @ pi  # P_tilde主特征值为1,这里相当于用了幂法
-    return pi
+        pi = P_tilde.T @ pi  # P_tilde主特征值为1,这里相当于用了幂法,
+    return pi  # P_tilde的列是入邻居，对应PR定义求和的下标，这里把对P_tilde转置是为了与幂法一致
 
 
 if __name__ == '__main__':
