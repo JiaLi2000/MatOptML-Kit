@@ -57,7 +57,7 @@ def confusion_matrx(y_pre, y):  # C_ij表示真实为i而预测为j的个数
 
 
 def auc_roc(y_score, y):
-    y_score_01 = (y_score - y.min()) / (y.max() - y.min())
+    y_score_01 = (y_score - y_score.min()) / (y.max() - y.min())
     pairs = []  # (FPR,TPR/Recall) pairs
     for threshold in np.linspace(0, 1, 10000, endpoint=True):  # 根据阈值离散化,记录(FPR,TPR)对
         y_pre = (y_score_01 >= threshold).astype(int)

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def dbscan(X, eps, m):  # 直接使用ndarray进行邻居查找的DBSCAN, O(n^2l)
+def dbscan(X, eps, m):  # 直接使用ndarray进行邻居查找的DBSCAN, O(n^2)
     n = X.shape[0]
     D = np.array([[((X[i, :] - X[j, :]) ** 2).sum() ** 0.5 for i in range(n)] for j in range(n)])  # nxn欧式距离矩阵
     label, cluster_id = np.full(n, -2), 0  # 用-2表示点处于未分配状态,-1表示异常，簇从0编号
